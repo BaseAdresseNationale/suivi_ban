@@ -4,7 +4,7 @@ Gestion de la connexion MongoDB pour Suivi BAN
 
 from pymongo import MongoClient, ASCENDING, GEOSPHERE, UpdateOne
 from pymongo.errors import ConnectionFailure
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 from config import MONGODB_URI, MONGODB_DATABASE, COLLECTIONS
@@ -101,7 +101,7 @@ def init_indexes():
 def upsert_commune(data):
     """Insere ou met a jour une commune"""
     communes = get_collection("communes")
-    data["updated_at"] = datetime.utcnow()
+    data["updated_at"] = datetime.now(timezone.utc)
     
     return communes.update_one(
         {"code_insee": data["code_insee"]},
@@ -113,7 +113,7 @@ def upsert_commune(data):
 def upsert_revision(data):
     """Insere ou met a jour une revision"""
     revisions = get_collection("revisions")
-    data["updated_at"] = datetime.utcnow()
+    data["updated_at"] = datetime.now(timezone.utc)
     
     # Si on insere/met a jour une revision avec is_current=True,
     # mettre toutes les autres revisions de la meme commune a is_current=False
@@ -124,7 +124,7 @@ def upsert_revision(data):
                 "is_current": True,
                 "revision_id": {"$ne": data["revision_id"]}  # Exclure la revision actuelle
             },
-            {"$set": {"is_current": False, "updated_at": datetime.utcnow()}}
+            {"$set": {"is_current": False, "updated_at": datetime.now(timezone.utc)}}
         )
     
     return revisions.update_one(
@@ -310,7 +310,7 @@ def update_departements_stats():
     stats = aggregate_stats_departements_from_communes()
 
     ops = []
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     for code, stat_data in stats.items():
         if not code:
             continue
@@ -704,7 +704,7 @@ def load_departements_from_geojson_file():
                         "nom": props.get("nom", f"Département {code}"),
                         "geometry": feature.get("geometry"),
                         "stats": stats,
-                        "loaded_at": datetime.utcnow(),
+                        "loaded_at": datetime.now(timezone.utc),
                         "loaded_from": "geojson_file"
                     }
                 },
@@ -756,7 +756,7 @@ def load_departements_from_api():
                             "code": code,
                             "nom": dept_detail.get("nom", dept.get("nom", f"Département {code}")),
                             "geometry": dept_detail.get("contour"),
-                            "loaded_at": datetime.utcnow(),
+                            "loaded_at": datetime.now(timezone.utc),
                             "loaded_from": "api"
                         }
                     },
@@ -895,7 +895,7 @@ def replace_deploiement_bal_features(features: list[dict], source_stats: dict | 
         {"_id": "latest"},
         {
             "$set": {
-                "updated_at": datetime.utcnow(),
+                "updated_at": datetime.now(timezone.utc),
                 "features_count": inserted,
                 "source_stats": source_stats or {},
             }
@@ -951,7 +951,7 @@ def replace_deploiement_bal_features_batched(
         {"_id": "latest"},
         {
             "$set": {
-                "updated_at": datetime.utcnow(),
+                "updated_at": datetime.now(timezone.utc),
                 "features_count": inserted,
                 "source_stats": source_stats or {},
             }

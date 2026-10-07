@@ -5,7 +5,7 @@ Recupere uniquement les communes modifiees dans les N derniers jours
 
 import requests
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from config import (
@@ -176,7 +176,7 @@ def collect_commune(code_insee, revision_data=None):
             "type_composition": ban_data.get("typeComposition") if ban_data else None,
             "date_revision": ban_data.get("dateRevision") if ban_data else None,
             "statut_couleur": statut,
-            "collected_at": datetime.utcnow()
+            "collected_at": datetime.now(timezone.utc)
         }
         
         # Ajouter la geometrie
@@ -233,7 +233,7 @@ def process_commune(code_commune, stored_date_revision=None):
                     "client_nom": revision_details.get("client", {}).get("nom"),
                     "organisation": revision_details.get("context", {}).get("organisation"),
                     "validation_valid": revision_details.get("validation", {}).get("valid"),
-                    "collected_at": datetime.utcnow()
+                    "collected_at": datetime.now(timezone.utc)
                 }
                 upsert_revision(rev_doc)
             
@@ -247,10 +247,10 @@ def process_commune(code_commune, stored_date_revision=None):
 
 def run_smart_collect():
     """Execute la collecte intelligente"""
-    start_time = datetime.now()
+    start_time = datetime.now(timezone.utc)
     
     # Calculer la date de debut
-    since_date = datetime.utcnow() - timedelta(days=COLLECT_WINDOW_DAYS)
+    since_date = datetime.now(timezone.utc) - timedelta(days=COLLECT_WINDOW_DAYS)
     
     logger.info(f"Collecte des revisions depuis {since_date.date()}")
     
@@ -267,7 +267,7 @@ def run_smart_collect():
         logger.info(f"Verification de {len(communes_to_check)} communes existantes")
     elif not communes_to_check:
         logger.info("Aucune commune a verifier")
-        log_update(start_time, datetime.now(), 0, 0, "success")
+        log_update(start_time, datetime.now(timezone.utc), 0, 0, "success")
         return True
     
     logger.info(f"{len(communes_to_check)} communes a verifier")
@@ -303,7 +303,7 @@ def run_smart_collect():
         logger.warning(f"Erreur lors de la mise à jour des stats départements: {e}")
     
     # Enregistrer le log
-    finished_time = datetime.now()
+    finished_time = datetime.now(timezone.utc)
     duration = (finished_time - start_time).total_seconds()
     
     log_update(start_time, finished_time, updated, errors, "success" if errors == 0 else "partial")
