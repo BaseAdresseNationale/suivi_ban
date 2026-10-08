@@ -1,7 +1,7 @@
 # Dockerfile pour Suivi BAN - Version MongoDB
 # Compatible Kyverno (non-root, read-only filesystem)
 
-FROM python:3.12-slim AS builder
+FROM python:3.14-slim AS builder
 
 WORKDIR /build
 
@@ -10,7 +10,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --target=/build/deps -r requirements.txt
 
 # ===========================================
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # Installer curl pour healthcheck
 RUN apt-get update && apt-get install -y --no-install-recommends curl && \
@@ -23,7 +23,7 @@ RUN groupadd -g 1000 appgroup && \
 WORKDIR /app
 
 # Copier les dépendances Python
-COPY --from=builder /build/deps /usr/local/lib/python3.12/site-packages/
+COPY --from=builder /build/deps /usr/local/lib/python3.14/site-packages/
 
 # Copier l'application (structure propre)
 COPY --chown=appuser:appgroup config.py ./

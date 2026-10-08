@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 import gc
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 
@@ -129,7 +129,7 @@ def _iter_chunks(items: list[str], chunk_size: int):
 
 
 def run_deploiement_bal_collect() -> bool:
-    started_at = datetime.utcnow()
+    started_at = datetime.now(timezone.utc)
     logger.info("[deploiement_bal] Collecte démarrée")
     try:
         logger.info("[deploiement_bal] STEP 1/5 fetch current-revisions")

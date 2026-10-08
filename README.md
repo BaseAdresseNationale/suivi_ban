@@ -11,7 +11,7 @@ Application web de suivi et de visualisation des Bases Adresses Locales (BAL) en
 
 ## Prérequis
 
-- Python 3.12+
+- Python 3.14+
 - MongoDB 7.0+
 - Docker (optionnel, pour le déploiement)
 

@@ -6,7 +6,7 @@ en gardant seulement la plus récente et mettant les autres à False
 
 import sys
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Ajouter le répertoire parent au path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -85,7 +85,7 @@ def cleanup_duplicate_revisions():
                 {
                     "$set": {
                         "is_current": False,
-                        "updated_at": datetime.utcnow()
+                        "updated_at": datetime.now(timezone.utc)
                     }
                 }
             )
